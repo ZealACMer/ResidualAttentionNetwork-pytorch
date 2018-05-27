@@ -1,6 +1,7 @@
 from __future__ import print_function, division
 import torch
 import torch.nn as nn
+from datasets import CSDataSet
 import torch.optim as optim
 from torch.autograd import Variable
 from torch.utils.data import Dataset, DataLoader
@@ -12,7 +13,7 @@ import cv2
 import time
 # from model.residual_attention_network_pre import ResidualAttentionModel
 # based https://github.com/liudaizong/Residual-Attention-Network
-from model.residual_attention_network import ResidualAttentionModel_92_32input as ResidualAttentionModel
+from model.residual_attention_network import ResidualAttentionModel_56_32input as ResidualAttentionModel
 
 model_file = 'model_92_sgd.pkl'
 
@@ -37,18 +38,17 @@ def test(model, test_loader, btrain=False, model_file='model_92.pkl'):
         _, predicted = torch.max(outputs.data, 1)
         total += labels.size(0)
         correct += (predicted == labels.data).sum()
-        #
-        c = (predicted == labels.data).squeeze()
+        c = (predicted == labels.data).squeeze().int()
         for i in range(20):
             label = labels.data[i]
             class_correct[label] += c[i]
             class_total[label] += 1
-
     print('Accuracy of the model on the test images: %d %%' % (100 * float(correct) / total))
     print('Accuracy of the model on the test images:', float(correct)/total)
+
     for i in range(10):
         print('Accuracy of %5s : %2d %%' % (
-            classes[i], 100 * class_correct[i] / class_total[i]))
+            classes[i], 100 * float(class_correct[i]) / float(class_total[i])))
     return correct / total
 
 
@@ -57,11 +57,19 @@ transform = transforms.Compose([
     transforms.RandomHorizontalFlip(),
     transforms.RandomCrop((32, 32), padding=4),   #left, top, right, bottom
     # transforms.Scale(224),
+    transforms.Grayscale(),
     transforms.ToTensor()
 ])
 test_transform = transforms.Compose([
+    transforms.Grayscale(),
     transforms.ToTensor()
 ])
+
+input_transform = transforms.Compose([
+    transforms.Grayscale(),
+    transforms.ToTensor()
+])
+
 # when image is rgb, totensor do the division 255
 # CIFAR-10 Dataset
 train_dataset = datasets.CIFAR10(root='./data/',
@@ -72,6 +80,9 @@ train_dataset = datasets.CIFAR10(root='./data/',
 test_dataset = datasets.CIFAR10(root='./data/',
                               train=False,
                               transform=test_transform)
+
+#train_dataset = CSDataSet(".", split="train",img_transform=input_transform, label_transform=None)
+#test_dataset = CSDataSet(".", split="val", img_transform=input_transform, label_transform=None)
 
 # Data Loader (Input Pipeline)
 train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
