@@ -26,20 +26,21 @@ class CSDataSet(data.Dataset):
         # self.mean_bgr = np.array([104.00698793, 116.66876762, 122.67891434])
         self.img_transform = img_transform
         self.label_transform = label_transform
-        self.h_flip = HorizontalFlip()
-        self.v_flip = VerticalFlip()
 
-        data_dir = osp.join(root, "data")
+
+        data_dir = root
         # for split in ["train", "trainval", "val"]:
         img_file = osp.join(data_dir, "img_" + split + ".npy")
         lab_file = osp.join(data_dir, "lab_" + split + ".npy")
+        ptn_file = osp.join(data_dir, "ptn_" + split + ".npy")
         self.imgs = np.load(img_file)
         self.labels = np.load(lab_file)
+        self.ptns = np.load(ptn_file)
         print("Loaded imgs: ", len(self.imgs))
         #self.files[split] = {"imgs": img_file, "labels": lab_file}
 
     def __len__(self):
-        print(len(self.imgs), self.split)
+        #print(len(self.imgs), self.split)
         return len(self.imgs)
 
     def __getitem__(self, index):
@@ -49,7 +50,7 @@ class CSDataSet(data.Dataset):
      
 
         label = int(self.labels[index])
-        
+        ptn = int(self.ptns[index])
         if self.img_transform is not None:
             img_o = self.img_transform(img)
             imgs = img_o
@@ -61,7 +62,7 @@ class CSDataSet(data.Dataset):
         else:
             labels = label
         # print np.array(labels)
-        return imgs, label
+        return imgs, label, ptn
 
 
 class CSTestSet(data.Dataset):

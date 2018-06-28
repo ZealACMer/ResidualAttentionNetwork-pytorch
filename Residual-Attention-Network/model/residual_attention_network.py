@@ -75,7 +75,7 @@ class ResidualAttentionModel_92(nn.Module):
     def __init__(self):
         super(ResidualAttentionModel_92, self).__init__()
         self.conv1 = nn.Sequential(
-            nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3, bias = False),
+            nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias = False),
             nn.BatchNorm2d(64),
             nn.ReLU(inplace=True)
         )
@@ -95,9 +95,9 @@ class ResidualAttentionModel_92(nn.Module):
         self.mpool2 = nn.Sequential(
             nn.BatchNorm2d(2048),
             nn.ReLU(inplace=True),
-            nn.AvgPool2d(kernel_size=7, stride=1)
+            nn.AvgPool2d(kernel_size=5, stride=1)
         )
-        self.fc = nn.Linear(2048,10)
+        self.fc = nn.Linear(2048,4)
 
     def forward(self, x):
         out = self.conv1(x)
@@ -146,14 +146,14 @@ class ResidualAttentionModel_56(nn.Module):
         self.mpool2 = nn.Sequential(
             nn.BatchNorm2d(2048),
             nn.ReLU(inplace=True),
-            nn.AvgPool2d(kernel_size=7, stride=1)
+            nn.AvgPool2d(kernel_size=5, stride=1)
         )
-        self.fc = nn.Linear(2048,10)
+        self.fc = nn.Linear(2048,4)
 
     def forward(self, x):
         out = self.conv1(x)
         out = self.mpool1(out)
-        # print(out.data)
+
         out = self.residual_block1(out)
         out = self.attention_module1(out)
         out = self.residual_block2(out)
@@ -165,7 +165,9 @@ class ResidualAttentionModel_56(nn.Module):
         out = self.residual_block5(out)
         out = self.residual_block6(out)
         out = self.mpool2(out)
+        #print(out.size())
         out = out.view(out.size(0), -1)
+        #print(out.size())
         out = self.fc(out)
 
         return out
